@@ -1,6 +1,7 @@
 ShaderCamera v0.1
 =================
 
+![ShaderCamera Screenshot][1]
 
 Simple glsl shaders usage with the latest Camera2 apis in Android 5.0+.
 -------------------------
@@ -51,3 +52,6 @@ but will continue to work fine on subsequent loads. Seen on Nexus 5.
 
 * Camera tends to crash after leaving app and coming back in, secondary onResume doing something silly.
 
+
+
+[1]: https://raw.githubusercontent.com/trippedout/ShaderCamera/master/screens/screen-1.jpg
