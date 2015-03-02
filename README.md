@@ -5,6 +5,7 @@ ShaderCamera v0.1
 Simple glsl shaders usage with the latest Camera2 apis in Android 5.0+.
 -------------------------
 
+
 Check out `SimpleCameraRenderer` for the basics on how to extend these classes to use shaders
 and `MainActivity` for how to use the CameraFragment, since it encapsulates all camera functionality
 and doesn't do anything with the UI itself.
@@ -14,9 +15,23 @@ with the Camera2 samples from Google.
 
 Any questions/comments/etc - [@trippedout](http://twitter.com/trippedout)
 
+Dependencies
+------------
+
+Need a 5.0+ device with access to [Camera2 apis](https://developer.android.com/reference/android/hardware/camera2/package-summary.html),
+most of the newest devices on the market will suffice,
+I don't think the emulator works in all cases, or at all. Let me know.
+
+Also uses [Butterknife](https://github.com/trippedout/ShaderCamera) by Jake Wharton for injection
+since i've been using it alot lately and it is awesome. Added through gradle so don't
+worry about anything on your end.
+
 
 TODO
 ----
+
+* PLAYING WITH PREVIEW ONLY - need to look into more about the api to determine best way for us to
+actually RECORD the cool stuff we're showing on screen, rather than just showing it. It's a toy for now.
 
 * Handles only square perspective for now, due to silly aspect ratio business. Should be simple future
 fix for handling normal full portait and landscape imagery.
