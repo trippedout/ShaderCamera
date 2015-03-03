@@ -39,7 +39,7 @@ public class AutoFitTextureView extends TextureView
         if (width < 0 || height < 0) {
             throw new IllegalArgumentException("Size cannot be negative.");
         }
-        Log.d(TAG, "setAspectRatio() " + width + ", " + height);
+//        Log.d(TAG, "setAspectRatio() " + width + ", " + height);
 
         mRatioWidth = width;
         mRatioHeight = height;

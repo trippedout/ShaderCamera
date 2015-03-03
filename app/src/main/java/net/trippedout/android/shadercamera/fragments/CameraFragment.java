@@ -290,27 +290,31 @@ public class CameraFragment extends Fragment {
             mPreviewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class), width, height, mVideoSize);
 
             int orientation = getResources().getConfiguration().orientation;
+            Log.d(TAG, "orientation: " + orientation);
             if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
                 mTextureView.setAspectRatio(mPreviewSize.getWidth(), mPreviewSize.getHeight());
                 mRenderer.setAspectRatio((float)mPreviewSize.getWidth() / mPreviewSize.getHeight());
                 configureTransform(width, height);
-            } else {
+            }
+            else {
                 mTextureView.setAspectRatio(mPreviewSize.getHeight(), mPreviewSize.getWidth());
                 mRenderer.setAspectRatio((float)mPreviewSize.getHeight() / mPreviewSize.getWidth());
                 configureTransform(height, width);
             }
-//            configureTransform(width, height);
 
             mMediaRecorder = new MediaRecorder();
             manager.openCamera(cameraId, mStateCallback, null);
-        } catch (CameraAccessException e) {
+        }
+        catch (CameraAccessException e) {
             Toast.makeText(activity, "Cannot access the camera.", Toast.LENGTH_SHORT).show();
             activity.finish();
-        } catch (NullPointerException e) {
+        }
+        catch (NullPointerException e) {
             // Currently an NPE is thrown when the Camera2API is used but not supported on the
             // device this code runs.
             new ErrorDialog().show(getFragmentManager(), "dialog");
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
             throw new RuntimeException("Interrupted while trying to lock camera opening.");
         }
     }
@@ -435,6 +439,7 @@ public class CameraFragment extends Fragment {
         float centerY = viewRect.centerY();
         
         int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
+        Log.d(TAG, "rotation: " + rotation);
         if (Surface.ROTATION_90 == rotation || Surface.ROTATION_270 == rotation)
         {
             RectF bufferRect = new RectF(0, 0, mPreviewSize.getHeight(), mPreviewSize.getWidth());

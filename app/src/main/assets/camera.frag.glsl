@@ -3,12 +3,16 @@
 //necessary
 precision mediump float;
 uniform samplerExternalOES texture;
+uniform float aspectRatio;
 varying vec2 v_TexCoordinate;
+
+//test
+uniform sampler2D image;
+varying vec2 v_Tex2Coordinate;
 
 //added new ones
 uniform float circleSize;
 uniform float percentage;
-uniform float aspectRatio;
 
 bool in_circle(float center_x,float  center_y,float radius,float x,float y) {
     float square_dist = pow(center_x - x, 2.0) + pow(center_y - y, 2.0);
@@ -26,5 +30,5 @@ void main () {
     if(in_circle(0.5, 0.5, circleSize, v_TexCoordinate.x, v_TexCoordinate.y))
         gl_FragColor = color * newPurple;
     else
-        gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+        gl_FragColor = texture2D(image, v_Tex2Coordinate);
 }

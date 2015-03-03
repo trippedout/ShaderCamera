@@ -2,12 +2,15 @@ package net.trippedout.android.shadercamera.gl;
 
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
 import android.util.Log;
 
+import net.trippedout.android.shadercamera.R;
 import net.trippedout.android.shadercamera.utils.AndroidUtils;
 
 import java.io.IOException;
@@ -29,30 +32,39 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
 {
     private static final String TAG = CameraRenderer.class.getSimpleName();
 
-
     public static final String DEFAULT_FRAGMENT_SHADER = "camera.frag.glsl";
     public static final String DEFAULT_VERTEX_SHADER = "camera.vert.glsl";
+
+    private Context ctx;
 
     protected String vertexShaderCode;
     protected String fragmentShaderCode;
 
     private static float squareSize = 1.0f;
-    private static float squareCoords[] = {-squareSize, squareSize, 0.0f,   // top left
-            -squareSize, -squareSize, 0.0f,   // bottom left
-            squareSize, -squareSize, 0.0f,   // bottom right
-            squareSize, squareSize, 0.0f}; // top right
 
-    private static short drawOrder[] = {0, 1, 2, 0, 2, 3};
+    private static float squareCoords[] = {
+            -squareSize, squareSize, // 0.0f,     // top left
+            squareSize, squareSize, // 0.0f,   // top right
+            -squareSize, -squareSize, // 0.0f,   // bottom left
+            squareSize, -squareSize, // 0.0f,   // bottom right
+    };
 
-    private Context ctx;
+    private static short drawOrder[] = {0, 1, 2, 1, 3, 2};
 
     // Texture to be shown in backgrund
     private FloatBuffer textureBuffer;
-    private float textureCoords[] = {0.0f, 1.0f, 0.0f, 1.0f,
-            0.0f, 0.0f, 0.0f, 1.0f,
-            1.0f, 0.0f, 0.0f, 1.0f,
-            1.0f, 1.0f, 0.0f, 1.0f};
-    private int[] textures = new int[1];
+    private float textureCoords[] = {
+            0.0f, 1.0f,
+            1.0f, 1.0f,
+            0.0f, 0.0f,
+            1.0f, 0.0f,
+    };
+
+    //texture ints for glGenTextures
+    public static final int MAX_TEXTURES = 8;
+    private int[] textures = new int[MAX_TEXTURES];
+
+
 
     protected int shaderProgram;
     private FloatBuffer vertexBuffer;
@@ -100,39 +112,7 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
         catch (IOException e) {
             e.printStackTrace();
         }
-
     }
-
-    private void setupShaders()
-    {
-        int vertexShaderHandle = GLES20.glCreateShader(GLES20.GL_VERTEX_SHADER);
-        GLES20.glShaderSource(vertexShaderHandle, vertexShaderCode);
-        GLES20.glCompileShader(vertexShaderHandle);
-        checkGlError("Vertex shader compile");
-
-        Log.d(TAG, "vertex shader info log:\n " + GLES20.glGetShaderInfoLog(vertexShaderHandle) );
-
-        int fragmentShaderHandle = GLES20.glCreateShader(GLES20.GL_FRAGMENT_SHADER);
-        GLES20.glShaderSource(fragmentShaderHandle, fragmentShaderCode);
-        GLES20.glCompileShader(fragmentShaderHandle);
-        checkGlError("Pixel shader compile");
-
-        Log.d(TAG, "fragment shader info log:\n " + GLES20.glGetShaderInfoLog(fragmentShaderHandle) );
-
-        shaderProgram = GLES20.glCreateProgram();
-        GLES20.glAttachShader(shaderProgram, vertexShaderHandle);
-        GLES20.glAttachShader(shaderProgram, fragmentShaderHandle);
-        GLES20.glLinkProgram(shaderProgram);
-        checkGlError("Shader program compile");
-
-        int[] status = new int[1];
-        GLES20.glGetProgramiv(shaderProgram, GLES20.GL_LINK_STATUS, status, 0);
-        if (status[0] != GLES20.GL_TRUE) {
-            String error = GLES20.glGetProgramInfoLog(shaderProgram);
-            Log.e("SurfaceTest", "Error while linking program:\n" + error);
-        }
-    }
-
 
     private void setupVertexBuffer() {
         // Draw list buffer
@@ -145,7 +125,6 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
         // Initialize the texture holder
         ByteBuffer bb = ByteBuffer.allocateDirect(squareCoords.length * 4);
         bb.order(ByteOrder.nativeOrder());
-
         vertexBuffer = bb.asFloatBuffer();
         vertexBuffer.put(squareCoords);
         vertexBuffer.position(0);
@@ -160,16 +139,59 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
         textureBuffer.put(textureCoords);
         textureBuffer.position(0);
 
-        // Generate the actual texture
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-        GLES20.glGenTextures(1, textures, 0);
+        // Generate the max amount texture ids
+        GLES20.glGenTextures(MAX_TEXTURES, textures, 0);
         checkGlError("Texture generate");
 
+        //set texture[0] to camera texture
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textures[0]);
         checkGlError("Texture bind");
 
         videoTexture = new SurfaceTexture(textures[0]);
         videoTexture.setOnFrameAvailableListener(this);
+
+        //extra texture
+        Bitmap owl = BitmapFactory.decodeResource(context.getResources(), R.drawable.owl);
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + 1);
+        checkGlError("Texture generate");
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[1]);
+        checkGlError("Texture bind");
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, owl, 0);
+        owl.recycle();
+    }
+
+
+    private void setupShaders()
+    {
+        int vertexShaderHandle = GLES20.glCreateShader(GLES20.GL_VERTEX_SHADER);
+        GLES20.glShaderSource(vertexShaderHandle, vertexShaderCode);
+        GLES20.glCompileShader(vertexShaderHandle);
+        checkGlError("Vertex shader compile");
+
+        Log.d(TAG, "vertexShader info log:\n " + GLES20.glGetShaderInfoLog(vertexShaderHandle));
+
+        int fragmentShaderHandle = GLES20.glCreateShader(GLES20.GL_FRAGMENT_SHADER);
+        GLES20.glShaderSource(fragmentShaderHandle, fragmentShaderCode);
+        GLES20.glCompileShader(fragmentShaderHandle);
+        checkGlError("Pixel shader compile");
+
+        Log.d(TAG, "fragmentShader info log:\n " + GLES20.glGetShaderInfoLog(fragmentShaderHandle));
+
+        shaderProgram = GLES20.glCreateProgram();
+        GLES20.glAttachShader(shaderProgram, vertexShaderHandle);
+        GLES20.glAttachShader(shaderProgram, fragmentShaderHandle);
+        GLES20.glLinkProgram(shaderProgram);
+        checkGlError("Shader program compile");
+
+        int[] status = new int[1];
+        GLES20.glGetProgramiv(shaderProgram, GLES20.GL_LINK_STATUS, status, 0);
+        if (status[0] != GLES20.GL_TRUE) {
+            String error = GLES20.glGetProgramInfoLog(shaderProgram);
+            Log.e("SurfaceTest", "Error while linking program:\n" + error);
+        }
     }
 
 
@@ -196,6 +218,7 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
         GLES20.glUseProgram(shaderProgram);
 
         setUniformsAndAttribs();
+        setExtraTextures();
         drawElements();
         onDrawCleanup();
 
@@ -216,16 +239,37 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
         GLES20.glUniform1f(aspectRatioHandle, mAspectRatio);
 
         GLES20.glEnableVertexAttribArray(positionHandle);
-        GLES20.glVertexAttribPointer(positionHandle, 3, GLES20.GL_FLOAT, false, 4 * 3, vertexBuffer);
+        GLES20.glVertexAttribPointer(positionHandle, 2, GLES20.GL_FLOAT, false, 4 * 2, vertexBuffer);
 
-        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textures[0]);
+        //camera texture
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textures[0]);
         GLES20.glUniform1i(textureParamHandle, 0);
 
         GLES20.glEnableVertexAttribArray(textureCoordinateHandle);
-        GLES20.glVertexAttribPointer(textureCoordinateHandle, 4, GLES20.GL_FLOAT, false, 0, textureBuffer);
+        GLES20.glVertexAttribPointer(textureCoordinateHandle, 2, GLES20.GL_FLOAT, false, 4 * 2, textureBuffer);
 
         GLES20.glUniformMatrix4fv(textureTranformHandle, 1, false, videoTextureTransform, 0);
+    }
+
+    /**
+     * override this and copy if u want to add your own textures
+     * if u need different uv coordinates, refer to {@link #setupTexture(android.content.Context)}
+     * for how to create your own buffer
+     */
+    protected void setExtraTextures()
+    {
+        int imageParamHandle = GLES20.glGetUniformLocation(shaderProgram, "image");
+        int texture2CoordinateHandle = GLES20.glGetAttribLocation(shaderProgram, "vTex2Coordinate");
+
+        //extra image
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[1]);
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + 1);
+        GLES20.glUniform1i(imageParamHandle, 1);
+
+        //reuse same coordinates from before but point them elsewhere
+        GLES20.glEnableVertexAttribArray(texture2CoordinateHandle);
+        GLES20.glVertexAttribPointer(texture2CoordinateHandle, 4, GLES20.GL_FLOAT, false, 4 * 2, textureBuffer);
     }
 
     private void drawElements()
@@ -300,9 +344,10 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
     }
 
 
-    public void setAspectRatio(float aspectRatio) {
-        mAspectRatio = aspectRatio;
+    public void setAspectRatio(float aspectRatio)
+    {
         Log.d(TAG, "setAspectRatio() " + mAspectRatio);
+        mAspectRatio = aspectRatio;
     }
 
 }
