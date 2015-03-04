@@ -1,4 +1,4 @@
-package net.trippedout.android.shadercamera;
+package net.trippedout.android.shadercamerasamples;
 
 import android.graphics.SurfaceTexture;
 import android.os.Bundle;
@@ -16,9 +16,9 @@ import butterknife.InjectView;
 import butterknife.OnClick;
 
 
-public class MainActivity extends FragmentActivity
+public class LipServiceActivity extends FragmentActivity
 {
-    private static final String TAG = MainActivity.class.getSimpleName();
+    private static final String TAG = LipServiceActivity.class.getSimpleName();
     private static final String TAG_CAMERA_FRAGMENT = "camera_fragment";
 
     @InjectView(R.id.texture) AutoFitTextureView mAutoFitTextureView;
@@ -64,7 +64,7 @@ public class MainActivity extends FragmentActivity
     {
         mCameraFragment.toggleRecording();
     }
-;
+    ;
     /**
      * {@link android.view.TextureView.SurfaceTextureListener} handles several lifecycle events on a
      * {@link android.view.TextureView}.
@@ -76,7 +76,7 @@ public class MainActivity extends FragmentActivity
         {
             Log.d(TAG, "onSurfaceTextureAvailable() " + width + ", " + height);
 
-            mRenderer = new SimpleCameraRenderer(MainActivity.this, surfaceTexture, width, height);
+            mRenderer = new SimpleCameraRenderer(LipServiceActivity.this, surfaceTexture, width, height);
             mCameraFragment.setRenderer(mRenderer);
             mCameraFragment.configureTransform(width, height);
             mCameraFragment.openCamera(width, height);
@@ -104,5 +104,4 @@ public class MainActivity extends FragmentActivity
         }
 
     };
-
 }
