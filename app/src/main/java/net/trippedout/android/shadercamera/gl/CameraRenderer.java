@@ -2,15 +2,12 @@ package net.trippedout.android.shadercamera.gl;
 
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
 import android.util.Log;
 
-import net.trippedout.android.shadercamera.R;
 import net.trippedout.android.shadercamera.utils.AndroidUtils;
 
 import java.io.IOException;
@@ -32,11 +29,18 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
 {
     private static final String TAG = CameraRenderer.class.getSimpleName();
 
-    public static final String DEFAULT_FRAGMENT_SHADER = "camera.frag.glsl";
-    public static final String DEFAULT_VERTEX_SHADER = "camera.vert.glsl";
+    /**
+     * if you create new files, just override these defaults in your subclass and
+     * don't edit the {@link #vertexShaderCode} and {@link #fragmentShaderCode} variables
+     */
+    protected String DEFAULT_FRAGMENT_SHADER = "camera.frag.glsl";
+    protected String DEFAULT_VERTEX_SHADER = "camera.vert.glsl";
 
     private Context ctx;
 
+    /**
+     * if you override these in ctor of subclass, loader will ignore the files listed above
+     */
     protected String vertexShaderCode;
     protected String fragmentShaderCode;
 

@@ -25,8 +25,7 @@ public class LipServiceActivity extends FragmentActivity
     @InjectView(R.id.texture) AutoFitTextureView mAutoFitTextureView;
 
     private CameraFragment mCameraFragment;
-    private LipServiceRenderer mRenderer;
-    private boolean mToggle = false;
+    private CameraFragment.CameraTextureListener mCameraTextureListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,23 +40,16 @@ public class LipServiceActivity extends FragmentActivity
     private void setupCameraFragment()
     {
         mCameraFragment = CameraFragment.newInstance();
-        mCameraFragment.setSurfaceTextureListener(mSurfaceTextureListener);
         mCameraFragment.setTextureView(mAutoFitTextureView);
+        mCameraFragment.setCameraToUse(CameraFragment.CAMERA_FORWARD);
+
+        //pass a reference to the renderer u want to use. we will use the observer pattern to get
+        //a reference to that renderer once it is created
+        mCameraTextureListener = new CameraFragment.CameraTextureListener(this, mCameraFragment, LipServiceRenderer.class);
 
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.add(mCameraFragment, TAG_CAMERA_FRAGMENT);
         transaction.commit();
-    }
-
-    @OnClick(R.id.btn_toggle_shader)
-    public void onClickToggleShader()
-    {
-//        if(mToggle)
-//            mRenderer.animateCircleClosed();
-//        else
-//            mRenderer.animateCircleOpen();
-//
-//        mToggle = !mToggle;
     }
 
     @OnClick(R.id.btn_record)
@@ -65,44 +57,5 @@ public class LipServiceActivity extends FragmentActivity
     {
         mCameraFragment.toggleRecording();
     }
-    ;
-    /**
-     * {@link android.view.TextureView.SurfaceTextureListener} handles several lifecycle events on a
-     * {@link android.view.TextureView}.
-     */
-    private TextureView.SurfaceTextureListener mSurfaceTextureListener = new TextureView.SurfaceTextureListener()
-    {
-        @Override
-        public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height)
-        {
-            Log.d(TAG, "onSurfaceTextureAvailable() " + width + ", " + height);
 
-            mRenderer = new LipServiceRenderer(LipServiceActivity.this, surfaceTexture, width, height);
-            mCameraFragment.setRenderer(mRenderer);
-            mCameraFragment.configureTransform(width, height);
-            mCameraFragment.openCamera(width, height);
-        }
-
-        @Override
-        public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int width, int height)
-        {
-            Log.d(TAG, "onSurfaceTextureSizeChanged() " + width + ", " + height);
-
-            mCameraFragment.configureTransform(width, height);
-        }
-
-        @Override
-        public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture)
-        {
-            Log.d(TAG, "onDestroy()");
-            return true;
-        }
-
-        @Override
-        public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture)
-        {
-
-        }
-
-    };
 }

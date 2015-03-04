@@ -22,6 +22,9 @@ bool in_circle(float center_x,float  center_y,float radius,float x,float y) {
 void main () {
     //set initial color
     vec4 color = texture2D(texture, v_TexCoordinate * vec2(aspectRatio, 1.0));
+    gl_FragColor = color;
+
+    return;
 
     //colored circles
     //vec4 purple = vec4(2.46, 0.43, 0.43, 1.0) * .5; //.5 adds darkness

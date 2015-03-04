@@ -13,7 +13,20 @@ import net.trippedout.android.shadercamera.gl.CameraRenderer;
  */
 public class LipServiceRenderer extends CameraRenderer
 {
+    private static final String TAG = LipServiceRenderer.class.getSimpleName();
+
     public LipServiceRenderer(Context context, SurfaceTexture texture, int width, int height) {
         super(context, texture, width, height);
+    }
+
+
+    /**
+     * override here to set up all your extra uniforms and attributes beyond
+     * the base 4 that are required for rendering the camera
+     */
+    @Override
+    protected void setUniformsAndAttribs()
+    {
+        super.setUniformsAndAttribs();
     }
 }

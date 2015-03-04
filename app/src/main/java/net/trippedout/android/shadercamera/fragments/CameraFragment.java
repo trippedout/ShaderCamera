@@ -36,7 +36,10 @@ import net.trippedout.android.shadercamera.view.AutoFitTextureView;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -77,6 +80,67 @@ public class CameraFragment extends Fragment {
 
     private CameraRenderer mRenderer;
 
+    /**
+     * {@link android.view.TextureView.SurfaceTextureListener} handles several lifecycle events on a
+     * {@link android.view.TextureView}.
+     */
+    public static class CameraTextureListener implements TextureView.SurfaceTextureListener
+    {
+        private final Context mContext;
+        private final Object mRendererClass;
+
+        private CameraFragment mFragment;
+        private CameraRenderer mRenderer;
+
+        public <T extends CameraRenderer> CameraTextureListener(Context context, CameraFragment frag, Class<T> renderer)
+        {
+            mContext = context;
+            mFragment = frag;
+            mRendererClass = renderer;
+
+            mFragment.setSurfaceTextureListener(this);
+        }
+
+        @Override
+        public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height)
+        {
+            Log.d(TAG, "onSurfaceTextureAvail() " + width + ", " + height);
+            try {
+                //like, why...
+                mRenderer = (CameraRenderer)((Class)mRendererClass).getConstructors()[0].newInstance(mContext, surface, width, height);
+            }
+            catch (java.lang.InstantiationException | IllegalAccessException | InvocationTargetException e) {
+                e.printStackTrace();
+            }
+
+            mFragment.setRenderer(mRenderer);
+            mFragment.configureTransform(width, height);
+            mFragment.openCamera(width, height);
+        }
+
+        @Override
+        public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int width, int height)
+        {
+            Log.d(TAG, "onSurfaceTextureSizeChanged() " + width + ", " + height);
+
+            mFragment.configureTransform(width, height);
+        }
+
+        @Override
+        public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture)
+        {
+            Log.d(TAG, "onDestroy()");
+            return true;
+        }
+
+        @Override
+        public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture)
+        {
+
+        }
+
+    }
+
     private TextureView.SurfaceTextureListener mSurfaceTextureListener;
 
     /**
@@ -113,6 +177,30 @@ public class CameraFragment extends Fragment {
      * A {@link android.os.Handler} for running tasks in the background.
      */
     private Handler mBackgroundHandler;
+
+
+    /**
+     * Use these for changing which camera to use on start
+     */
+    public static final int CAMERA_PRIMARY = 0;
+
+    /**
+     * The id of what is typically the forward facing camera.
+     * If this fails, use {@link #CAMERA_PRIMARY}, as it might be the only camera registered.
+     */
+    public static final int CAMERA_FORWARD = 1;
+
+    protected int mCameraToUse = CAMERA_PRIMARY;
+
+    /**
+     * Set which camera to use, defaults to {@link #CAMERA_PRIMARY}.
+     *
+     * @param camera_id can also be {@link #CAMERA_FORWARD} for forward facing, but use primary if that fails.
+     */
+    public void setCameraToUse(int camera_id)
+    {
+        mCameraToUse = camera_id;
+    }
 
     /**
      * A {@link java.util.concurrent.Semaphore} to prevent the app from exiting before closing the camera.
@@ -280,7 +368,7 @@ public class CameraFragment extends Fragment {
             if (!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
                 throw new RuntimeException("Time out waiting to lock camera opening.");
             }
-            String cameraId = manager.getCameraIdList()[1];
+            String cameraId = manager.getCameraIdList()[mCameraToUse];
 
             // Choose the sizes for camera preview and video recording
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
@@ -380,9 +468,8 @@ public class CameraFragment extends Fragment {
                     }
                 }
             }, mBackgroundHandler);
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        }
+        catch (CameraAccessException | IOException e) {
             e.printStackTrace();
         }
     }
