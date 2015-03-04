@@ -10,7 +10,10 @@ import net.trippedout.android.shadercamerasamples.R;
  * lip service!
  *
  * Read the comments in {@link net.trippedout.android.shadercamera.gl.SimpleCameraRenderer} and {@link net.trippedout.android.shadercamera.gl.CameraRenderer}
- * to learn more about how we implement this file and its usage
+ * to learn more about how we implement this file and its usage.
+ *
+ * This file adds a texture of my stupid face with the mouth cut out, and draws it on top of the forward
+ * facing camera feed, for a throwback Conan O'Brien and new age Jimmy Fallon experience.
  */
 public class LipServiceRenderer extends CameraRenderer
 {
@@ -27,6 +30,7 @@ public class LipServiceRenderer extends CameraRenderer
         super.onSetupComplete();
 
         //remember when you add a texture to make sure that u have the proper
+        //sampler2D setup in your fragment shader with the same id!
         addTexture(R.drawable.mouth, "mouth");
     }
 

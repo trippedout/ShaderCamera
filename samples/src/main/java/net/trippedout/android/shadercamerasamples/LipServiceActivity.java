@@ -1,21 +1,16 @@
 package net.trippedout.android.shadercamerasamples;
 
-import android.graphics.SurfaceTexture;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
-import android.util.Log;
-import android.view.TextureView;
 
 import net.trippedout.android.shadercamera.fragments.CameraFragment;
-import net.trippedout.android.shadercamera.gl.SimpleCameraRenderer;
 import net.trippedout.android.shadercamera.view.AutoFitTextureView;
 import net.trippedout.android.shadercamerasamples.gl.LipServiceRenderer;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
-
 
 public class LipServiceActivity extends FragmentActivity
 {
