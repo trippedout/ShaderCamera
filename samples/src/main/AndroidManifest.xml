@@ -24,6 +24,10 @@
             android:name=".LipServiceActivity"
             android:label="@string/activity_name_lip_service"
             android:screenOrientation="portrait"/>
+        <activity
+            android:name=".DepthBlurActivity"
+            android:label="Depth Blur"
+            android:screenOrientation="portrait"/>
     </application>
 
 </manifest>

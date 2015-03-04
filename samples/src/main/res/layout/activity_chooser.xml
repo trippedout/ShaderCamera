@@ -15,4 +15,10 @@
         android:layout_height="wrap_content"
         android:text="Lip Service"/>
 
+    <Button
+        android:id="@+id/btn_depth_blur"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Depth Blur"/>
+
 </LinearLayout>

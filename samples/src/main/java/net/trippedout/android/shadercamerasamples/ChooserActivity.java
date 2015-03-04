@@ -32,6 +32,12 @@ public class ChooserActivity extends FragmentActivity
         gotoSample(LipServiceActivity.class);
     }
 
+    @OnClick(R.id.btn_depth_blur)
+    public void onDepthClicked()
+    {
+        gotoSample(DepthBlurActivity.class);
+    }
+
     private <T extends FragmentActivity> void gotoSample(Class<T> activityClass)
     {
         Intent intent = new Intent(this, activityClass);
