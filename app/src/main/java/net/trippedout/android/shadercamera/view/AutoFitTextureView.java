@@ -6,7 +6,8 @@ import android.util.Log;
 import android.view.TextureView;
 
 /**
- * new shit
+ * TODO - figure out why the fuck we really need to do this.
+ * Code originally taken from Camera2 api samples on github/googlesamples
  */
 public class AutoFitTextureView extends TextureView
 {

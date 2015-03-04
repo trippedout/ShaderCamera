@@ -187,15 +187,15 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
         videoTexture.setOnFrameAvailableListener(this);
 
         //extra texture
-        Bitmap owl = BitmapFactory.decodeResource(ctx.getResources(), R.drawable.mouth);
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + 1);
-        checkGlError("Texture generate");
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[1]);
-        checkGlError("Texture bind");
-        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
-        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
-        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, owl, 0);
-        owl.recycle();
+//        Bitmap owl = BitmapFactory.decodeResource(ctx.getResources(), R.drawable.mouth);
+//        GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + 1);
+//        checkGlError("Texture generate");
+//        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[1]);
+//        checkGlError("Texture bind");
+//        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
+//        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+//        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, owl, 0);
+//        owl.recycle();
     }
 
     private void setupShaders()
@@ -341,6 +341,17 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
 //        adjustViewport = false;
 //    }
 
+
+    /**
+     * necessary to make sure that our updating of animation happens in-line with the new frames
+     * coming in. without this, we were seeing two or three 'animationUpdates' being called
+     * in between actual draw calls. this guarantees a draw every time you update the frame
+     */
+    protected void updateFrame() {
+        synchronized (this) {
+            frameAvailable = true;
+        }
+    }
 
     public void checkGlError(String op) {
         int error;

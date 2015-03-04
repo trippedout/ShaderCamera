@@ -10,6 +10,7 @@ import android.view.TextureView;
 import net.trippedout.android.shadercamera.fragments.CameraFragment;
 import net.trippedout.android.shadercamera.gl.SimpleCameraRenderer;
 import net.trippedout.android.shadercamera.view.AutoFitTextureView;
+import net.trippedout.android.shadercamerasamples.gl.LipServiceRenderer;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -24,13 +25,13 @@ public class LipServiceActivity extends FragmentActivity
     @InjectView(R.id.texture) AutoFitTextureView mAutoFitTextureView;
 
     private CameraFragment mCameraFragment;
-    private SimpleCameraRenderer mRenderer;
+    private LipServiceRenderer mRenderer;
     private boolean mToggle = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_lip_service);
 
         ButterKnife.inject(this);
 
@@ -51,12 +52,12 @@ public class LipServiceActivity extends FragmentActivity
     @OnClick(R.id.btn_toggle_shader)
     public void onClickToggleShader()
     {
-        if(mToggle)
-            mRenderer.animateCircleClosed();
-        else
-            mRenderer.animateCircleOpen();
-
-        mToggle = !mToggle;
+//        if(mToggle)
+//            mRenderer.animateCircleClosed();
+//        else
+//            mRenderer.animateCircleOpen();
+//
+//        mToggle = !mToggle;
     }
 
     @OnClick(R.id.btn_record)
@@ -76,7 +77,7 @@ public class LipServiceActivity extends FragmentActivity
         {
             Log.d(TAG, "onSurfaceTextureAvailable() " + width + ", " + height);
 
-            mRenderer = new SimpleCameraRenderer(LipServiceActivity.this, surfaceTexture, width, height);
+            mRenderer = new LipServiceRenderer(LipServiceActivity.this, surfaceTexture, width, height);
             mCameraFragment.setRenderer(mRenderer);
             mCameraFragment.configureTransform(width, height);
             mCameraFragment.openCamera(width, height);

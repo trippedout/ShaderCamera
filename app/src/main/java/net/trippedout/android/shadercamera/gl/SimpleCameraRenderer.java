@@ -75,16 +75,6 @@ public class SimpleCameraRenderer extends CameraRenderer
         animator.start();
     }
 
-    /**
-     * necessary to make sure that our updating of animation happens in-line with the new frames
-     * coming in. without this, we were seeing two or three 'animationUpdates' being called
-     * in between actual draw calls. this guarantees a draw every time you update the frame
-     */
-    private void updateFrame() {
-        synchronized (this) {
-            frameAvailable = true;
-        }
-    }
 
     /**
      * override here to set up all your extra uniforms and attributes beyond
