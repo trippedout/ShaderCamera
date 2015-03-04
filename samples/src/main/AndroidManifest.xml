@@ -18,7 +18,7 @@
         </activity>
         <activity
             android:name=".LipServiceActivity"
-            android:label="@string/app_name"
+            android:label="@string/activity_name_lip_service"
             android:screenOrientation="portrait"/>
     </application>
 

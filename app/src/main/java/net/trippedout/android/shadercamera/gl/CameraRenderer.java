@@ -2,6 +2,8 @@ package net.trippedout.android.shadercamera.gl;
 
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
@@ -15,6 +17,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
+import java.util.ArrayList;
 
 /**
  * Base camera rendering class. Extend this and override the fragment and vertex shaders, as well
@@ -85,22 +88,33 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
     //aspect ratio
     private float mAspectRatio = 1.0f;
 
+    //textures
+    private ArrayList<Texture> mTextureArray;
+
 
     public CameraRenderer(Context context, SurfaceTexture texture, int width, int height)
     {
         super(texture, width, height);
         this.ctx = context;
 
-        if(fragmentShaderCode == null || vertexShaderCode == null)
-            loadFromShadersFromAssets(DEFAULT_FRAGMENT_SHADER, DEFAULT_VERTEX_SHADER);
+        init(DEFAULT_FRAGMENT_SHADER, DEFAULT_VERTEX_SHADER);
     }
 
     public CameraRenderer(Context context, SurfaceTexture texture, int width, int height, String fragPath, String vertPath) {
         super(texture, width, height);
         this.ctx = context;
 
+            init(fragPath, vertPath);
+    }
+
+    private void init(String fragPath, String vertPath)
+    {
+        //load shaders
         if(fragmentShaderCode == null || vertexShaderCode == null)
             loadFromShadersFromAssets(fragPath, vertPath);
+
+        //setup arrays
+        mTextureArray = new ArrayList<>();
     }
 
     private void loadFromShadersFromAssets(String pathToFragment, String pathToVertex)
@@ -141,6 +155,8 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
         setupVertexBuffer();
         setupTexture();
         setupShaders();
+
+        onSetupComplete();
     }
 
     // ------------------------------------------------------------
@@ -189,17 +205,6 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
 
         videoTexture = new SurfaceTexture(textures[0]);
         videoTexture.setOnFrameAvailableListener(this);
-
-        //extra texture
-//        Bitmap owl = BitmapFactory.decodeResource(ctx.getResources(), R.drawable.mouth);
-//        GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + 1);
-//        checkGlError("Texture generate");
-//        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[1]);
-//        checkGlError("Texture bind");
-//        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
-//        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
-//        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, owl, 0);
-//        owl.recycle();
     }
 
     private void setupShaders()
@@ -230,6 +235,15 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
             String error = GLES20.glGetProgramInfoLog(shaderProgram);
             Log.e("SurfaceTest", "Error while linking program:\n" + error);
         }
+    }
+
+    /**
+     * called when all setup is complete on basic GL stuffs
+     * override for adding textures and other shaders
+     */
+    protected void onSetupComplete()
+    {
+
     }
 
     // ------------------------------------------------------------
@@ -271,11 +285,11 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
      */
     protected void setUniformsAndAttribs()
     {
-        int textureParamHandle = GLES20.glGetUniformLocation(shaderProgram, "texture");
-        int textureTranformHandle = GLES20.glGetUniformLocation(shaderProgram, "textureTransform");
+        int textureParamHandle = GLES20.glGetUniformLocation(shaderProgram, "camTexture");
+        int textureTranformHandle = GLES20.glGetUniformLocation(shaderProgram, "camTextureTransform");
         int aspectRatioHandle = GLES20.glGetUniformLocation(shaderProgram, "aspectRatio");
-        textureCoordinateHandle = GLES20.glGetAttribLocation(shaderProgram, "vTexCoordinate");
-        positionHandle = GLES20.glGetAttribLocation(shaderProgram, "vPosition");
+        textureCoordinateHandle = GLES20.glGetAttribLocation(shaderProgram, "camTexCoordinate");
+        positionHandle = GLES20.glGetAttribLocation(shaderProgram, "position");
 
         GLES20.glUniform1f(aspectRatioHandle, mAspectRatio);
 
@@ -293,6 +307,28 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
         GLES20.glUniformMatrix4fv(textureTranformHandle, 1, false, videoTextureTransform, 0);
     }
 
+    public void addTexture(int resource_id, String uniformName)
+    {
+        int texNum = mTextureArray.size() + 1;
+        if(texNum >= MAX_TEXTURES)
+            throw new IllegalStateException("Too many textures! Please don't use so many :(");
+
+        Bitmap bmp = BitmapFactory.decodeResource(ctx.getResources(), resource_id);
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + texNum);
+        checkGlError("Texture generate");
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[texNum]);
+        checkGlError("Texture bind");
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
+        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bmp, 0);
+        bmp.recycle();
+
+        Texture tex = new Texture(texNum, uniformName);
+        mTextureArray.add(tex);
+
+        Log.d(TAG, "addedTexture() " + tex);
+    }
+
     /**
      * override this and copy if u want to add your own textures
      * if u need different uv coordinates, refer to {@link #setupTexture()}
@@ -300,17 +336,28 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
      */
     protected void setExtraTextures()
     {
-        int imageParamHandle = GLES20.glGetUniformLocation(shaderProgram, "image");
-        int texture2CoordinateHandle = GLES20.glGetAttribLocation(shaderProgram, "vTex2Coordinate");
+        for(int i = 0; i < mTextureArray.size(); i++)
+        {
+            Texture tex = mTextureArray.get(i);
+            int imageParamHandle = GLES20.glGetUniformLocation(shaderProgram, tex.uniformName);
 
-        //extra image
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[1]);
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + 1);
-        GLES20.glUniform1i(imageParamHandle, 1);
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[tex.texId]);
+            GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + tex.texId);
+            GLES20.glUniform1i(imageParamHandle, tex.texId);
 
-        //reuse same coordinates from before but point them elsewhere
-        GLES20.glEnableVertexAttribArray(texture2CoordinateHandle);
-        GLES20.glVertexAttribPointer(texture2CoordinateHandle, 4, GLES20.GL_FLOAT, false, 4 * 2, textureBuffer);
+        }
+
+//        int imageParamHandle = GLES20.glGetUniformLocation(shaderProgram, "image");
+//        int texture2CoordinateHandle = GLES20.glGetAttribLocation(shaderProgram, "vTex2Coordinate");
+//
+//        //extra image
+//        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[1]);
+//        GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + 1);
+//        GLES20.glUniform1i(imageParamHandle, 1);
+//
+//        //reuse same coordinates from before but point them elsewhere
+//        GLES20.glEnableVertexAttribArray(texture2CoordinateHandle);
+//        GLES20.glVertexAttribPointer(texture2CoordinateHandle, 4, GLES20.GL_FLOAT, false, 4 * 2, textureBuffer);
     }
 
     private void drawElements()
@@ -372,6 +419,23 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
     {
         Log.d(TAG, "setAspectRatio() " + mAspectRatio);
         mAspectRatio = aspectRatio;
+    }
+
+    /**
+     * Internal class for storing refs to textures for rendering
+     */
+    private class Texture {
+        public int texId;
+        public String uniformName;
+        private Texture(int texId, String uniformName) {
+            this.texId = texId;
+            this.uniformName = uniformName;
+        }
+
+        @Override
+        public String toString() {
+            return "[Texture] textureId: " + texId + ", uniformName: " + uniformName;
+        }
     }
 
 }
