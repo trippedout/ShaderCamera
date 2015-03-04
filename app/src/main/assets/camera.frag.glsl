@@ -22,13 +22,23 @@ bool in_circle(float center_x,float  center_y,float radius,float x,float y) {
 void main () {
     //set initial color
     vec4 color = texture2D(texture, v_TexCoordinate * vec2(aspectRatio, 1.0));
-    gl_FragColor = color;
 
-    vec4 purple = vec4(2.46, 0.43, 0.43, 1.0) * .5; //.5 adds darkness
-    vec4 newPurple = clamp(percentage + purple, 0.0, 1.0);
+    //colored circles
+    //vec4 purple = vec4(2.46, 0.43, 0.43, 1.0) * .5; //.5 adds darkness
+    //vec4 newPurple = clamp(percentage + purple, 0.0, 1.0);
+    //if(in_circle(0.5, 0.5, circleSize, v_TexCoordinate.x, v_TexCoordinate.y))
+    //    gl_FragColor = color;// * newPurple;
 
-    if(in_circle(0.5, 0.5, circleSize, v_TexCoordinate.x, v_TexCoordinate.y))
-        gl_FragColor = color * newPurple;
-    else
-        gl_FragColor = texture2D(image, v_Tex2Coordinate);
+
+    vec4 face = texture2D(image, v_Tex2Coordinate);
+    gl_FragColor = face;
+
+    if(face.a < 1.0 && face.a > 0.0)
+    {
+        vec4 mx = mix(color, face, face.a);
+        gl_FragColor = mx + vec4(face.rgb * (1. - face.a), 1.0);
+    }
+    else if(face.a == 0.0)
+        gl_FragColor = color;
+
 }

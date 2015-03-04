@@ -64,8 +64,6 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
     public static final int MAX_TEXTURES = 8;
     private int[] textures = new int[MAX_TEXTURES];
 
-
-
     protected int shaderProgram;
     private FloatBuffer vertexBuffer;
     private ShortBuffer drawListBuffer;
@@ -75,8 +73,6 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
 
     protected boolean frameAvailable = false;
 
-    private int videoWidth;
-    private int videoHeight;
     private boolean adjustViewport = false;
 
     private int textureCoordinateHandle;
@@ -114,6 +110,46 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
         }
     }
 
+    // ------------------------------------------------------------
+    // overrides
+    // ------------------------------------------------------------
+
+    @Override
+    public void onFrameAvailable(SurfaceTexture surfaceTexture) {
+        synchronized (this) {
+            frameAvailable = true;
+        }
+    }
+
+    @Override
+    protected void deinitGLComponents()
+    {
+        GLES20.glDeleteTextures(1, textures, 0);
+        GLES20.glDeleteProgram(shaderProgram);
+
+        videoTexture.release();
+        videoTexture.setOnFrameAvailableListener(null);
+    }
+
+    @Override
+    protected void initGLComponents() {
+        setupBlending();
+        setupVertexBuffer();
+        setupTexture();
+        setupShaders();
+    }
+
+    // ------------------------------------------------------------
+    // setup
+    // ------------------------------------------------------------
+
+
+    private void setupBlending() {
+        GLES20.glEnable(GLES20.GL_BLEND);
+        GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+    }
+
+
     private void setupVertexBuffer() {
         // Draw list buffer
         ByteBuffer dlb = ByteBuffer.allocateDirect(drawOrder.length * 2);
@@ -130,8 +166,7 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
         vertexBuffer.position(0);
     }
 
-
-    private void setupTexture(Context context) {
+    private void setupTexture() {
         ByteBuffer texturebb = ByteBuffer.allocateDirect(textureCoords.length * 4);
         texturebb.order(ByteOrder.nativeOrder());
 
@@ -152,7 +187,7 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
         videoTexture.setOnFrameAvailableListener(this);
 
         //extra texture
-        Bitmap owl = BitmapFactory.decodeResource(context.getResources(), R.drawable.owl);
+        Bitmap owl = BitmapFactory.decodeResource(ctx.getResources(), R.drawable.mouth);
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + 1);
         checkGlError("Texture generate");
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[1]);
@@ -162,7 +197,6 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
         GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, owl, 0);
         owl.recycle();
     }
-
 
     private void setupShaders()
     {
@@ -194,7 +228,9 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
         }
     }
 
-
+    // ------------------------------------------------------------
+    // drawing
+    // ------------------------------------------------------------
 
     @Override
     protected boolean draw() {
@@ -208,11 +244,12 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
             }
         }
 
-        if (adjustViewport)
-            adjustViewport();
+//        if (adjustViewport)
+//            adjustViewport();
 
         GLES20.glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+
 
         //set shader
         GLES20.glUseProgram(shaderProgram);
@@ -254,7 +291,7 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
 
     /**
      * override this and copy if u want to add your own textures
-     * if u need different uv coordinates, refer to {@link #setupTexture(android.content.Context)}
+     * if u need different uv coordinates, refer to {@link #setupTexture()}
      * for how to create your own buffer
      */
     protected void setExtraTextures()
@@ -283,47 +320,27 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
         GLES20.glDisableVertexAttribArray(textureCoordinateHandle);
     }
 
-    private void adjustViewport() {
-        float surfaceAspect = height / (float) width;
-        float videoAspect = videoHeight / (float) videoWidth;
+//    private void adjustViewport() {
+//        float surfaceAspect = height / (float) width;
+//        float videoAspect = videoHeight / (float) videoWidth;
+//
+//        Log.d(TAG, "adjustViewport() " + surfaceAspect + ", " + videoAspect);
+//
+//        if (surfaceAspect > videoAspect) {
+//            float heightRatio = height / (float) videoHeight;
+//            int newWidth = (int) (width * heightRatio);
+//            int xOffset = (newWidth - width) / 2;
+//            GLES20.glViewport(-xOffset, 0, newWidth, height);
+//        } else {
+//            float widthRatio = width / (float) videoWidth;
+//            int newHeight = (int) (height * widthRatio);
+//            int yOffset = (newHeight - height) / 2;
+//            GLES20.glViewport(0, -yOffset, width, newHeight);
+//        }
+//
+//        adjustViewport = false;
+//    }
 
-        Log.d(TAG, "adjustViewport() " + surfaceAspect + ", " + videoAspect);
-
-        if (surfaceAspect > videoAspect) {
-            float heightRatio = height / (float) videoHeight;
-            int newWidth = (int) (width * heightRatio);
-            int xOffset = (newWidth - width) / 2;
-            GLES20.glViewport(-xOffset, 0, newWidth, height);
-        } else {
-            float widthRatio = width / (float) videoWidth;
-            int newHeight = (int) (height * widthRatio);
-            int yOffset = (newHeight - height) / 2;
-            GLES20.glViewport(0, -yOffset, width, newHeight);
-        }
-
-        adjustViewport = false;
-    }
-
-    @Override
-    protected void initGLComponents() {
-        setupVertexBuffer();
-        setupTexture(ctx);
-        setupShaders();
-    }
-
-    @Override
-    protected void deinitGLComponents() {
-        GLES20.glDeleteTextures(1, textures, 0);
-        GLES20.glDeleteProgram(shaderProgram);
-        videoTexture.release();
-        videoTexture.setOnFrameAvailableListener(null);
-    }
-
-    public void setVideoSize(int width, int height) {
-        this.videoWidth = width;
-        this.videoHeight = height;
-        adjustViewport = true;
-    }
 
     public void checkGlError(String op) {
         int error;
@@ -335,14 +352,6 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
     public SurfaceTexture getVideoTexture() {
         return videoTexture;
     }
-
-    @Override
-    public void onFrameAvailable(SurfaceTexture surfaceTexture) {
-        synchronized (this) {
-            frameAvailable = true;
-        }
-    }
-
 
     public void setAspectRatio(float aspectRatio)
     {
