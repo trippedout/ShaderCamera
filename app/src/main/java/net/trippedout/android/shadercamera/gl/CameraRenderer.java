@@ -100,6 +100,16 @@ public class CameraRenderer extends TextureSurfaceRenderer implements SurfaceTex
         init(DEFAULT_FRAGMENT_SHADER, DEFAULT_VERTEX_SHADER);
     }
 
+    /**
+     * Secondary constructor for passing in shaders to override the default shader.
+     * Context, texture, width, and height are passed in automatically by {@link net.trippedout.android.shadercamera.fragments.CameraFragment.CameraTextureListener}
+     * @param context
+     * @param texture
+     * @param width
+     * @param height
+     * @param fragPath the file name of your fragment shader, ex: "lip_service.frag" if it is top-level /assets/ folder. Add subdirectories if needed
+     * @param vertPath the file name of your vertex shader, ex: "lip_service.vert" if it is top-level /assets/ folder. Add subdirectories if needed
+     */
     public CameraRenderer(Context context, SurfaceTexture texture, int width, int height, String fragPath, String vertPath) {
         super(texture, width, height);
         this.ctx = context;

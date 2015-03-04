@@ -17,6 +17,10 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".CameraActivity"
+            android:label="Camera Only"
+            android:screenOrientation="portrait"/>
+        <activity
             android:name=".LipServiceActivity"
             android:label="@string/activity_name_lip_service"
             android:screenOrientation="portrait"/>

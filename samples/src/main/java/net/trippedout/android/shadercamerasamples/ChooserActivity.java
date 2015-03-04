@@ -19,7 +19,13 @@ public class ChooserActivity extends FragmentActivity
 
         ButterKnife.inject(this);
     }
-    
+
+    @OnClick(R.id.btn_camera_only)
+    public void onCameraOnlyClicked()
+    {
+        gotoSample(CameraActivity.class);
+    }
+
     @OnClick(R.id.btn_lip_service)
     public void onLipServiceClicked()
     {
