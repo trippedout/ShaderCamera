@@ -92,13 +92,14 @@ public class CameraFragment extends Fragment {
         private CameraFragment mFragment;
         private CameraRenderer mRenderer;
 
-        public <T extends CameraRenderer> CameraTextureListener(Context context, CameraFragment frag, Class<T> renderer)
+        public <T extends CameraRenderer> CameraTextureListener(OnRendererCreatedListener listener, CameraFragment frag, Class<T> renderer)
         {
-            mContext = context;
+            mContext = (Context)listener; //cheating since we know itll be an activity
             mFragment = frag;
             mRendererClass = renderer;
 
             mFragment.setSurfaceTextureListener(this);
+            mOnRendererCreatedListener = listener;
         }
 
         @Override
@@ -108,6 +109,8 @@ public class CameraFragment extends Fragment {
             try {
                 //like, why...
                 mRenderer = (CameraRenderer)((Class)mRendererClass).getConstructors()[0].newInstance(mContext, surface, width, height);
+                if(mOnRendererCreatedListener != null)
+                    mOnRendererCreatedListener.onRendererCreated(mRenderer);
             }
             catch (java.lang.InstantiationException | IllegalAccessException | InvocationTargetException e) {
                 e.printStackTrace();
@@ -139,6 +142,14 @@ public class CameraFragment extends Fragment {
 
         }
 
+        /**
+         * interface for pushing back the renderer once its created
+         */
+        public interface OnRendererCreatedListener {
+            public void onRendererCreated(CameraRenderer renderer);
+        }
+
+        private OnRendererCreatedListener mOnRendererCreatedListener;
     }
 
     private TextureView.SurfaceTextureListener mSurfaceTextureListener;

@@ -5,6 +5,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 
 import net.trippedout.android.shadercamera.fragments.CameraFragment;
+import net.trippedout.android.shadercamera.gl.CameraRenderer;
 import net.trippedout.android.shadercamera.view.AutoFitTextureView;
 import net.trippedout.android.shadercamerasamples.gl.LipServiceRenderer;
 
@@ -12,8 +13,7 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 
-public class LipServiceActivity extends FragmentActivity
-{
+public class LipServiceActivity extends FragmentActivity implements CameraFragment.CameraTextureListener.OnRendererCreatedListener {
     private static final String TAG = LipServiceActivity.class.getSimpleName();
     private static final String TAG_CAMERA_FRAGMENT = "camera_fragment";
 
@@ -21,6 +21,8 @@ public class LipServiceActivity extends FragmentActivity
 
     private CameraFragment mCameraFragment;
     private CameraFragment.CameraTextureListener mCameraTextureListener;
+
+    private LipServiceRenderer mRenderer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,10 +49,14 @@ public class LipServiceActivity extends FragmentActivity
         transaction.commit();
     }
 
+    @Override
+    public void onRendererCreated(CameraRenderer renderer) {
+        mRenderer = (LipServiceRenderer)renderer;
+    }
+
     @OnClick(R.id.btn_record)
     public void onRecordClicked()
     {
         mCameraFragment.toggleRecording();
     }
-
 }

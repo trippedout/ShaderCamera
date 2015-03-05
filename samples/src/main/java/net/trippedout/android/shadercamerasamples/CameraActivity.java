@@ -5,6 +5,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 
 import net.trippedout.android.shadercamera.fragments.CameraFragment;
+import net.trippedout.android.shadercamera.gl.CameraRenderer;
 import net.trippedout.android.shadercamera.view.AutoFitTextureView;
 import net.trippedout.android.shadercamerasamples.gl.CameraBasicRenderer;
 
@@ -15,7 +16,7 @@ import butterknife.OnClick;
 /**
  * Doesn't really do much except display the camera
  */
-public class CameraActivity extends FragmentActivity {
+public class CameraActivity extends FragmentActivity implements CameraFragment.CameraTextureListener.OnRendererCreatedListener {
     private static final String TAG_CAMERA_FRAGMENT = "camera_fragment";
 
     @InjectView(R.id.texture)
@@ -23,6 +24,8 @@ public class CameraActivity extends FragmentActivity {
 
     private CameraFragment mCameraFragment;
     private CameraFragment.CameraTextureListener mCameraTextureListener;
+
+    private CameraBasicRenderer mRenderer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,10 +52,14 @@ public class CameraActivity extends FragmentActivity {
         transaction.commit();
     }
 
+    @Override
+    public void onRendererCreated(CameraRenderer renderer) {
+        mRenderer = (CameraBasicRenderer) renderer;
+    }
+
     @OnClick(R.id.btn_record)
     public void onRecordClicked()
     {
         mCameraFragment.toggleRecording();
     }
-
 }
