@@ -1,3 +1,6 @@
+DEPRECATED
+==========
+
 ShaderCamera v0.1
 =================
 
